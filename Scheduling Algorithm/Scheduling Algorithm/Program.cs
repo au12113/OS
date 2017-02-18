@@ -81,19 +81,19 @@ namespace Scheduling_Algorithm
                         time += tmp;
                     }    
                 }
-
             }
             while (checkRR(ref rrProcess));
+            //Console.WriteLine("Finish all process at {0}", tmp);
         }
 
         static bool checkRR(ref List<Process> process)
         {
             for( int i = 0; i < process.Count; i++ )
             {
-                if (process[i]._burstTime < 0)
-                    return false;
+                if (process[i]._burstTime > 0)
+                    return true;
             }
-            return true;
+            return false;
         }
 
         static void print(ref List<Process> process)
@@ -101,10 +101,10 @@ namespace Scheduling_Algorithm
             int time = 0; 
             for ( int i = 0; i < process.Count; i++)
             {
-                Console.WriteLine("Time: {0}, Process name: {1}, Burst time: {2}.", time, process[i]._processName, process[i]._burstTime);
+                Console.WriteLine("Process: {0}, Arrival Time: {1}, Burst time: {2}.", process[i]._processName, time, process[i]._burstTime);
                 time += process[i]._burstTime;
             }
-            Console.WriteLine("Finish Job at: {0}.", time);
+            //Console.WriteLine("Finish Job at: {0}.", time);
         }
     }
 }
