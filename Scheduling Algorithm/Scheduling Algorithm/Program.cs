@@ -9,15 +9,18 @@ namespace Scheduling_Algorithm
     class Program
     {
         public static int QUANTUMTIME = 5;
+        public static int NULLARRIVALTIME = 99999;
 
         public class Process
         {
             public string _processName { get; set; }
             public int _burstTime { get; set; }
+            public int _arrivalTime { get; set; }
             public Process(string name, int time)
             {
                 _processName = name;
                 _burstTime = time;
+                _arrivalTime = NULLARRIVALTIME;
             }
         } 
 
@@ -48,29 +51,39 @@ namespace Scheduling_Algorithm
 
         static void FCFS(ref List<Process> process)
         {
+            /*foreach(Process item in process)
+            {
+                item._arrivalTime = item._burstTime;
+            }*/
             print(ref process);
         }
 
         static void SJF(ref List<Process> process)
         {
+            //int time = 0;
             List<Process> sjfProcess = process.OrderBy(o => o._burstTime).ToList();
+            /*for (int i = 0; i < sjfProcess.Count; i++)
+            {
+                sjfProcess[i]._arrivalTime = time;
+                time+=sjfProcess[i]._burstTime;
+            }*/
             print(ref sjfProcess);
         }
 
         static void RR(ref List<Process> process)
         {
-            List<Process> rrProcess = process;
-            int tmp = 0, time = 0;
+            int tmp = 0, time = 0, sum = 0;
             do
             {
                 for (int i = 0; i < process.Count; i++)
                 {
                     if( process[i]._burstTime > 0)
                     {
-                        if(process[i]._burstTime < QUANTUMTIME)
+                        if(process[i]._burstTime <= QUANTUMTIME)
                         {
                             tmp = process[i]._burstTime;
                             process[i]._burstTime = 0;
+                            process[i]._arrivalTime = time;
                         }
                         else
                         {
@@ -82,7 +95,13 @@ namespace Scheduling_Algorithm
                     }    
                 }
             }
-            while (checkRR(ref rrProcess));
+            while (checkRR(ref process));
+
+            for (int i = 0; i < process.Count; i++)
+            {
+                sum += process[i]._arrivalTime;
+            }
+            Console.WriteLine("Average arrival time: {0}.", sum / process.Count);
             //Console.WriteLine("Finish all process at {0}", tmp);
         }
 
@@ -98,13 +117,16 @@ namespace Scheduling_Algorithm
 
         static void print(ref List<Process> process)
         {
-            int time = 0; 
+            int time = 0;
+            float sum = 0;
             for ( int i = 0; i < process.Count; i++)
             {
                 Console.WriteLine("Process: {0}, Arrival Time: {1}, Burst time: {2}.", process[i]._processName, time, process[i]._burstTime);
+                process[i]._arrivalTime = time;
+                sum += process[i]._arrivalTime;
                 time += process[i]._burstTime;
             }
-            //Console.WriteLine("Finish Job at: {0}.", time);
+            Console.WriteLine("Average arrival time: {0}.", sum/process.Count);
         }
     }
 }
