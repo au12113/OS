@@ -8,7 +8,7 @@ namespace Scheduling_Algorithm
 {
     class Program
     {
-        public static int QUANTUMTIME = 5;
+        public static int QUANTUMTIME = 4;
         public static int NULLARRIVALTIME = 99999;
 
         public class Process
@@ -16,11 +16,13 @@ namespace Scheduling_Algorithm
             public string _processName { get; set; }
             public int _burstTime { get; set; }
             public int _arrivalTime { get; set; }
+            public int _rrTime { get; set; }
             public Process(string name, int time)
             {
                 _processName = name;
                 _burstTime = time;
                 _arrivalTime = NULLARRIVALTIME;
+                _rrTime = 0;
             }
         } 
 
@@ -72,7 +74,8 @@ namespace Scheduling_Algorithm
 
         static void RR(ref List<Process> process)
         {
-            int tmp = 0, time = 0, sum = 0;
+            int tmp = 0, time = 0;
+            float sum = 0;
             do
             {
                 for (int i = 0; i < process.Count; i++)
@@ -87,6 +90,7 @@ namespace Scheduling_Algorithm
                         }
                         else
                         {
+                            process[i]._rrTime += QUANTUMTIME;
                             tmp = QUANTUMTIME;
                             process[i]._burstTime -= QUANTUMTIME;
                         }
@@ -99,7 +103,8 @@ namespace Scheduling_Algorithm
 
             for (int i = 0; i < process.Count; i++)
             {
-                sum += process[i]._arrivalTime;
+                Console.WriteLine("Process: {0}, WT: {1}",process[i]._processName, process[i]._arrivalTime - process[i]._rrTime);
+                sum += (process[i]._arrivalTime - process[i]._rrTime);
             }
             Console.WriteLine("Average arrival time: {0}.", sum / process.Count);
             //Console.WriteLine("Finish all process at {0}", tmp);
