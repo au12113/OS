@@ -106,7 +106,7 @@ namespace Scheduling_Algorithm
                 Console.WriteLine("Process: {0}, WT: {1}",process[i]._processName, process[i]._arrivalTime - process[i]._rrTime);
                 sum += (process[i]._arrivalTime - process[i]._rrTime);
             }
-            Console.WriteLine("Average arrival time: {0}.", sum / process.Count);
+            Console.WriteLine("Average arrival time: {0}", sum / process.Count);
             //Console.WriteLine("Finish all process at {0}", tmp);
         }
 
@@ -131,7 +131,7 @@ namespace Scheduling_Algorithm
                 sum += process[i]._arrivalTime;
                 time += process[i]._burstTime;
             }
-            Console.WriteLine("Average arrival time: {0}.", sum/process.Count);
+            Console.WriteLine("Average arrival time: {0}", sum/process.Count);
         }
     }
 }
