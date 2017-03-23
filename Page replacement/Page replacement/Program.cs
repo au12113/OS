@@ -10,33 +10,59 @@ namespace Page_replacement
     {
         static void Main(string[] args)
         {
+            Console.Write("Choose case: ");
+            int choose_case = Convert.ToInt32(Console.ReadLine());
             int frame = 3;
-            List<int> input = new List<int> { 7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1 };
-            LRU(input, frame);
+            //List<int> input = new List<int> { 7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1 };
+            List<int> input = Generate_Testcase(20, choose_case);
+            //Console.WriteLine("\nFIFO");
+            //FIFO(input, frame);
+            Console.WriteLine("\nOptimal");
+            Optimal(input, frame);
+            //Console.WriteLine("\nLRU");
+            //LRU(input, frame);
             Console.ReadKey();
         }
 
         static void FIFO(List<int> input, int frame)
         {
-            int[] page_frame = new int[frame];
+            int next_victimPage_index = 0;
             //Prepare page frame 
-            for (int index = 0; input[index] != '\0'; index++)
+            int[] page_frame = Prepare_page_frame(frame);
+            
+            foreach (int current_input in input)
             {
-                input[index] = -1;
+                bool isHit = false;
+                //is hit: scan page frame
+                for(int page_index = 0; page_index < page_frame.Count(); page_index++)
+                {
+                    if(page_frame[page_index] == current_input)
+                    {
+                        isHit = true;
+                        break;
+                    }
+                }
+
+                if(!isHit)
+                {
+                    page_frame[next_victimPage_index] = current_input;
+                    next_victimPage_index = (next_victimPage_index + 1) % frame;
+                    Display_page_frame(page_frame);
+                }
+                else
+                {
+                    Console.WriteLine("\t--Hit--");
+                    isHit = false;
+                }
             }
         }
 
         static void Optimal(List<int> input, int frame)
         {
-            int[] page_frame = new int[frame];
-            int[] next_page_using = new int[frame];
             //Prepare page frame 
-            for (int index = 0; input[index] != '\0'; index++)
-            {
-                input[index] = -1;
-            }
+            int[] page_frame = Prepare_page_frame(frame);
 
-            for(int current_input = 0; current_input < input.Count; current_input++)
+            for (int current_input = 0; current_input < input.Count; current_input++)
             {
                 bool hit = false;
                 for (int index = 0; index < page_frame.Count(); index++)
@@ -50,20 +76,40 @@ namespace Page_replacement
                 //replacement and display page frame
                 if(!hit)
                 {
+                    int[] next_page_using = new int[frame];
+                    int max_next_using_time = -1;
+                    int victim_page = -1;
                     //scan the input to select victim page frame
-                    for(int scan_input = current_input + 1; scan_input < input.Count; scan_input++)
+                    for (int index = 0; index < page_frame.Count(); index++)
                     {
-                        for (int index = 0; index < page_frame.Count(); index++)
+                        for (int scan_input = current_input + 1; scan_input < input.Count; scan_input++)
                         {
-                            if()
+                            if (input[scan_input] != page_frame[index])
+                                next_page_using[index]++;
+                            else
+                                break;
                         }
                     }
+                    for (int index = 0; index < page_frame.Count(); index++)
+                    {
+                        if (next_page_using[index] > max_next_using_time)
+                        {
+                            max_next_using_time = next_page_using[index];
+                            victim_page = index;
+                        }
+                        if (page_frame[index] == -1)
+                        {
+                            victim_page = index;
+                        }
+                        
+                    }
+                    page_frame[victim_page] = input[current_input];
 
                     Display_page_frame(page_frame);
                 }
                 else
                 {
-                    Console.WriteLine("--Hit--");
+                    Console.WriteLine("\t--Hit--");
                     hit = false;
                 }
             }
@@ -72,12 +118,8 @@ namespace Page_replacement
         static void LRU(List<int> input, int frame)
         {
             int[] page_used_counter = new int[frame]; //count each not used page frame time.
-            int[] page_frame = new int[frame];
             //Prepare page frame 
-            for (int index = 0; index < page_frame.Count() ; index++)
-            {
-                page_frame[index] = -1;
-            }
+            int[] page_frame = Prepare_page_frame(frame);
 
             //LRU Process
             for (int index = 0; index < input.Count; index++)
@@ -113,7 +155,7 @@ namespace Page_replacement
                 }
                 else
                 {
-                    Console.WriteLine("---Hit---");
+                    Console.WriteLine("\t---Hit---");
                     hit = false;
                 }
             }
@@ -121,7 +163,7 @@ namespace Page_replacement
 
         static void Display_page_frame(int[] page_frame)
         {
-            Console.Write("Page frame:");
+            Console.Write("\tPage frame:");
             for (int page = 0; page < page_frame.Count(); page++)
             {
                 if (page_frame[page] == -1)
@@ -130,6 +172,88 @@ namespace Page_replacement
                     Console.Write(" {0}", page_frame[page]);
             }
             Console.WriteLine(".");
+        }
+
+        static int[] Prepare_page_frame(int frame)
+        {
+            int[] page_frame = new int[frame];
+            for (int index = 0; index < page_frame.Count(); index++)
+            {
+                page_frame[index] = -1;
+            }
+            return page_frame;
+        }
+        
+        //testcase_type: 1) Distict number, 2) Non-distict number and 3) Pattern
+        static List<int> Generate_Testcase(int number_testcase, int testcase_type)
+        {
+            List<int> testcase = new List<int>();
+            System.IO.StreamWriter writer = new System.IO.StreamWriter("test case.txt");
+            Random rnd = new Random();
+            int random_nItem;
+
+            //if type is distict or non-distict, then shuffle the list before add to text file.
+            if (testcase_type == 3)
+            {
+                List<int> tmp_pattern = new List<int>();
+                int n_pattern = rnd.Next(2, 7);
+                for(int current_pattern = 0; current_pattern < n_pattern; current_pattern++)
+                {
+                    tmp_pattern.Add(rnd.Next(0, number_testcase));
+                }
+
+                for (int i = 0; i < number_testcase; i += tmp_pattern.Count)
+                {
+                    //Random the number of items in this transaction.
+                    foreach(int item in tmp_pattern)
+                    {
+                        testcase.Add(item);
+                    }
+                }
+            }
+            else
+            {
+                if (testcase_type == 1)
+                {
+                    int most_member = (int)(number_testcase * 0.6);
+                    random_nItem = rnd.Next(0, number_testcase);
+                    for (int i = 0; i < most_member; i++)
+                    {
+                        //Random the number of items in this transaction.
+                        testcase.Add(random_nItem);
+                    }
+                    for (int i = testcase.Count; i < number_testcase; i++)
+                    {
+                        //Random the number of items in this transaction.
+                        random_nItem = rnd.Next(0, number_testcase);
+                        testcase.Add(random_nItem);
+                    }
+                    testcase = testcase.OrderBy(item => rnd.Next()).ToList();
+                }
+                else
+                {
+                    for (int i = 0; i < number_testcase;)
+                    {
+                        //Random the number of items in this transaction.
+                        random_nItem = rnd.Next(0, number_testcase);
+                        if(!testcase.Contains(random_nItem))
+                        {
+                            testcase.Add(random_nItem);
+                            i++;
+                        }
+                    }
+                    testcase = testcase.OrderBy(item => rnd.Next()).ToList();
+                }
+            }
+
+            foreach (int item in testcase)
+            {
+                writer.Write("{0}, ",item);
+            }
+
+            writer.Close();
+            
+            return testcase;
         }
     }
 }
