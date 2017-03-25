@@ -10,23 +10,44 @@ namespace Page_replacement
     {
         static void Main(string[] args)
         {
+            /*
+            //List<int> input = new List<int> { 7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1 };
             Console.Write("Choose case: ");
             int choose_case = Convert.ToInt32(Console.ReadLine());
-            int frame = 3;
-            //List<int> input = new List<int> { 7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1 };
-            List<int> input = Generate_Testcase(20, choose_case);
-            //Console.WriteLine("\nFIFO");
-            //FIFO(input, frame);
-            Console.WriteLine("\nOptimal");
-            Optimal(input, frame);
-            //Console.WriteLine("\nLRU");
-            //LRU(input, frame);
-            Console.ReadKey();
+            Console.Write("number_of_testcase: ");
+            int number_of_testcase = Convert.ToInt32(Console.ReadLine());
+            Console.Write("number_of_frame: ");
+            int frame = Convert.ToInt32(Console.ReadLine());
+            */
+
+            for (int frame = 3; frame < 6; frame++)
+            {
+                for(int choose_case = 1; choose_case < 4; choose_case++)
+                {
+                    for(int number_of_testcase = 20; number_of_testcase <= 40; number_of_testcase+=10)
+                    {
+                        for(int i = 0; i < 3; i++)
+                        {
+                            string result = "f" + frame + " test case_" + choose_case + " n" + number_of_testcase + " " + DateTime.Now.ToFileTime() + ".txt";
+                            System.IO.StreamWriter writer = new System.IO.StreamWriter(result);
+                            List<int> input = Generate_Testcase(20, choose_case, writer);
+                            writer.WriteLine("\nFIFO");
+                            FIFO(input, frame, writer);
+                            writer.WriteLine("\nOptimal");
+                            Optimal(input, frame, writer);
+                            writer.WriteLine("\nLRU");
+                            LRU(input, frame, writer);
+                            writer.Close();
+                        }
+                    }
+                }
+            }
         }
 
-        static void FIFO(List<int> input, int frame)
+        static void FIFO(List<int> input, int frame, System.IO.StreamWriter writer)
         {
             int next_victimPage_index = 0;
+            int page_fault = 0;
             //Prepare page frame 
             int[] page_frame = Prepare_page_frame(frame);
             
@@ -47,18 +68,21 @@ namespace Page_replacement
                 {
                     page_frame[next_victimPage_index] = current_input;
                     next_victimPage_index = (next_victimPage_index + 1) % frame;
-                    Display_page_frame(page_frame);
+                    Display_page_frame(page_frame, writer);
+                    page_fault++;
                 }
                 else
                 {
-                    Console.WriteLine("\t--Hit--");
+                    writer.WriteLine("\t--Hit--");
                     isHit = false;
                 }
             }
+            writer.WriteLine("Page fault: {0}.", page_fault);
         }
 
-        static void Optimal(List<int> input, int frame)
+        static void Optimal(List<int> input, int frame, System.IO.StreamWriter writer)
         {
+            int page_fault = 0;
             //Prepare page frame 
             int[] page_frame = Prepare_page_frame(frame);
 
@@ -105,18 +129,21 @@ namespace Page_replacement
                     }
                     page_frame[victim_page] = input[current_input];
 
-                    Display_page_frame(page_frame);
+                    Display_page_frame(page_frame, writer);
+                    page_fault++;
                 }
                 else
                 {
-                    Console.WriteLine("\t--Hit--");
+                    writer.WriteLine("\t--Hit--");
                     hit = false;
                 }
             }
+            writer.WriteLine("Page fault: {0}.", page_fault);
         }
 
-        static void LRU(List<int> input, int frame)
+        static void LRU(List<int> input, int frame, System.IO.StreamWriter writer)
         {
+            int page_fault = 0;
             int[] page_used_counter = new int[frame]; //count each not used page frame time.
             //Prepare page frame 
             int[] page_frame = Prepare_page_frame(frame);
@@ -151,27 +178,31 @@ namespace Page_replacement
                     page_frame[max_time_index] = input[index];
                     page_used_counter[max_time_index] = 0;
 
-                    Display_page_frame(page_frame);
+                    Display_page_frame(page_frame, writer);
+                    page_fault++;
                 }
                 else
                 {
-                    Console.WriteLine("\t---Hit---");
+                    writer.WriteLine("\t---Hit---");
                     hit = false;
                 }
             }
+            writer.WriteLine("Page fault: {0}.", page_fault);
         }
 
-        static void Display_page_frame(int[] page_frame)
+        static void Display_page_frame(int[] page_frame, System.IO.StreamWriter writer)
         {
-            Console.Write("\tPage frame:");
+            writer.Write("Page frame:");
             for (int page = 0; page < page_frame.Count(); page++)
             {
                 if (page_frame[page] == -1)
-                    Console.Write(" -");
+                    writer.Write(" -");
+                    //Console.Write(" -");
                 else
-                    Console.Write(" {0}", page_frame[page]);
+                    writer.Write(" {0}", page_frame[page]);
+                    //Console.Write(" {0}", page_frame[page]);
             }
-            Console.WriteLine(".");
+            writer.WriteLine(".");
         }
 
         static int[] Prepare_page_frame(int frame)
@@ -185,10 +216,10 @@ namespace Page_replacement
         }
         
         //testcase_type: 1) Distict number, 2) Non-distict number and 3) Pattern
-        static List<int> Generate_Testcase(int number_testcase, int testcase_type)
+        static List<int> Generate_Testcase(int number_testcase, int testcase_type, System.IO.StreamWriter writer)
         {
             List<int> testcase = new List<int>();
-            System.IO.StreamWriter writer = new System.IO.StreamWriter("test case.txt");
+            //System.IO.StreamWriter writer = new System.IO.StreamWriter("test case.txt");
             Random rnd = new Random();
             int random_nItem;
 
@@ -196,7 +227,7 @@ namespace Page_replacement
             if (testcase_type == 3)
             {
                 List<int> tmp_pattern = new List<int>();
-                int n_pattern = rnd.Next(2, 7);
+                int n_pattern = rnd.Next(5, 7);
                 for(int current_pattern = 0; current_pattern < n_pattern; current_pattern++)
                 {
                     tmp_pattern.Add(rnd.Next(0, number_testcase));
@@ -246,13 +277,13 @@ namespace Page_replacement
                 }
             }
 
-            foreach (int item in testcase)
+            for(int i = 0; i < testcase.Count() - 1; i++)
             {
-                writer.Write("{0}, ",item);
+                writer.Write("{0}, ", testcase[i]);
             }
+            writer.WriteLine("{0}.", testcase.Last());
+            //writer.Close();
 
-            writer.Close();
-            
             return testcase;
         }
     }
